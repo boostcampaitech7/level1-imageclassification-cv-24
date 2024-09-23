@@ -59,7 +59,6 @@ class CustomDataset(Dataset):
                     
             self.augmented_image_paths = self.augmented_df['image_path'].tolist()
             self.all_image_paths = self.image_paths + self.augmented_image_paths
-            print(self.augmented_image_paths[:10])
         else:
             self.all_image_paths = self.image_paths
 
