@@ -12,7 +12,7 @@ from src.models.model_utils import get_model
 from src.utils.data_loaders import get_test_loaders
 
 def run(config):
-    device = torch.device(config['training']['device'])
+    device = torch.device(config['device'])
 
     model = get_model(config).to(device)
     
