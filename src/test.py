@@ -13,7 +13,20 @@ from src.utils.data_loaders import get_test_loaders
 
 def run(config):
     device = torch.device(config['device'])
-
+    
+    if config['ensemble']['use_ensemble']:
+        models = []
+        ensemble_path = os.path.join(config['paths']['output_dir'], 'ensemble_models.pth')
+        ensemble_state_dicts = torch.load(ensemble_path)
+        for i, state_dict in enumerate(ensemble_state_dicts):
+            model = get_model(config['ensemble']['models'][i]).to(device)
+            model.load_state_dict(state_dict)
+            models.append(model)
+    else:
+        model = get_model(config).to(device)
+        model.load_state_dict(torch.load(os.path.join(config['paths']['output_dir'], "best_model1.pth")))
+        models = [model]
+        
     model = get_model(config).to(device)
     
     test_loader = get_test_loaders(config)
@@ -46,4 +59,4 @@ def run(config):
     test_info = test_info.reset_index().rename(columns={"index": "ID"})
     test_info
     test_info.to_csv(os.path.join(config['paths']['output_dir'],"output.csv"), index=False)
-
+    

@@ -19,7 +19,7 @@ def set_random_seed(seed):
 
 def get_config():
     config = {}
-    config_files = ['base.yaml', 'optimization.yaml', 'train.yaml', 'path.yaml']
+    config_files = ['base.yaml', 'optimization.yaml', 'train.yaml', 'path.yaml', 'ensemble.yaml']
     for file in config_files:
         with open(f'configs/{file}', 'r') as f:
             config.update(yaml.safe_load(f))

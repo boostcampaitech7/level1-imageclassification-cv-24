@@ -25,6 +25,19 @@ def get_wandb_config(config):
     }
     return wandb_config
 
+def train_ensemble(config):
+    ensemble_models = []
+    ensemble_config = config['ensemble']
+    for i, model_config in enumerate(ensemble_config['models']):
+        model_config = {**config, **model_config}  # 기본 config에 모델별 config를 덮어씁니다
+        model = get_model(model_config).to(config['device'])
+        best_val_metric = run(model_config, model)
+        ensemble_models.append((model, best_val_metric))
+    # 앙상블 모델 저장
+    ensemble_path = os.path.join(config['paths']['output_dir'], 'ensemble_models.pth')
+    torch.save([model.state_dict() for model, _ in ensemble_models], ensemble_path)
+    return ensemble_models
+
 def run(config, trial_number=None):
     os.makedirs(config['paths']['save_dir'],exist_ok=True)
 
@@ -129,6 +142,11 @@ def run(config, trial_number=None):
             final_model_path = f"{config['paths']['save_dir']}/final_model1.pth"
 
     torch.save(model.state_dict(), final_model_path)
-
+    
+    if config['ensemble']['use_ensemble']:
+        print("--------------------USE ENSEMBLE NOW---------------------------------")
+        wandb.log(train_ensemble(config))
+        return train_ensemble(config)
+    
     wandb.finish()
     return best_val_metric

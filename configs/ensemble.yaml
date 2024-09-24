@@ -1,0 +1,9 @@
+ensemble:
+  use_ensemble: True
+  models:
+    - name: "deit_base_patch16_224"
+      num_classes: 1000
+    - name: "vit_base_patch16_224"
+      num_classes: 1000
+    - name: "resnet50"
+      num_classes: 1000
