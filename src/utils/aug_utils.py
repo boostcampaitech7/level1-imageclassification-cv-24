@@ -94,7 +94,7 @@ def cutmix(image1, image2, alpha=1.0):
     image2 = cv2.resize(image2, (224, 224))
 
     h, w = image1.shape[:2]
-    lam = np.random.beta(alpha, alpha)
+    lam = alpha
 
     cut_rat = np.sqrt(1. - lam)
     cut_w = int(w * cut_rat)
@@ -113,8 +113,8 @@ def cutmix(image1, image2, alpha=1.0):
 
     return image_mixed
 
-def mixup(image1, image2, alpha=1.0):
-    lam = np.random.beta(alpha, alpha)
+def mixup(image1, image2, alpha):
+    lam = alpha
 
     image1 = cv2.resize(image1, (224, 224))
     image2 = cv2.resize(image2, (224, 224))
