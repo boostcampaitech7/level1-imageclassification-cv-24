@@ -26,7 +26,7 @@ def ensemble_predictions(predictions_list):
     ensemble_preds = torch.stack(predictions_list).mean(dim=0)
     return ensemble_preds.argmax(dim=1)
 
-def run_ensemble(config):
+def run(config):
     device = torch.device(config['device'])
     test_loader = get_test_loaders(config)
 
@@ -54,4 +54,4 @@ if __name__ == "__main__":
     from src.utils.params import get_params
     
     config = get_params()
-    run_ensemble(config)
+    run(config)
