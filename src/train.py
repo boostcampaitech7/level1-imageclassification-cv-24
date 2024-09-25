@@ -55,12 +55,12 @@ def run(config, trial_number=None):
     best_val_metric = metric_fn.worst_value
     patience_counter = 0
     early_stopping_config = config['training']['early_stopping']
-
+    pseudo_labeling_interval = config['training']['interval']
 
     # 메인 트레이닝 루프
     for epoch in range(config['training']['num_epochs']):
-
-        if config['training']['pseudo_labeling']:
+        
+        if config['training']['pseudo_labeling'] and epoch % pseudo_labeling_interval == 0 and epoch > 0:
             combined_loader, pseudo_label_count = pseudo_label_training_step(
                 model, train_loader, test_loader, device, config
             )

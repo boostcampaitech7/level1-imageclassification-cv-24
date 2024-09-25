@@ -28,6 +28,7 @@ training:
 
   pseudo_labeling : False
   confidence_threshold: 0.8
+  interval : 5
 model:
   name: "eff4"
   pretrained: True
