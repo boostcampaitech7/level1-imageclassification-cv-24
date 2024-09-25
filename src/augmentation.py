@@ -37,17 +37,16 @@ def process_image(row, config, augmentations, dataframe):
     new_rows = []
 
     for aug_type, aug in enumerate(augmentations):
-        lam = np.random.beta(2.0, 8.0)
 
         if isinstance(aug, MixupTransform):
-            augmented_image = mixup(image1, image2, alpha=lam)
+            augmented_image = mixup(image1, image2)
             
             # mixed_target = lam * target + (1 - lam) * image2_row['target']
             # new_target = mixed_target.round().astype(int)
             new_target = target
 
         elif isinstance(aug, CutMixTransform):
-            augmented_image = cutmix(image1, image2, alpha=lam)
+            augmented_image = cutmix(image1, image2)
             new_target = target
 
         # label 섞는 것이 의도
