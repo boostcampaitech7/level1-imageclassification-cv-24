@@ -12,21 +12,21 @@ hyperparameter_optimization:
       values: ["Adam"]
       type: "categorical"
     weight_decay:
-      min: 1e-4
-      max: 1e-4
+      min: 1e-5
+      max: 1e-5
       type: "log_uniform"
     num_epochs: 
       min: 5
       max: 20
       type: "int"
 augmentation:
-  noise: 0.0
-  blur: 0.0
+  noise: 0.5
+  blur: 0.5
 
 offline_augmentation:
   augmentation:
-    flip: 1
     mask: 1
+    distortion: 1
   ratio: 2
 
 randaugment:

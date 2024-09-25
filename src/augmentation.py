@@ -1,18 +1,13 @@
-import sys
-from pathlib import Path
-sys.path.append(str(Path(__file__).parent.parent))
 import pandas as pd
-import numpy as np
 import cv2
 import os
 from tqdm import tqdm
 from functools import partial
 from concurrent.futures import ThreadPoolExecutor
 
-from src.utils.aug_utils import get_augmentation, apply_augmentation, apply_augmentation_with_mixup_cutmix, create_augmented_image_name 
-from src.utils.aug_utils import MixupTransform, CutMixTransform, mixup, cutmix
+from src.utils.aug_utils import get_augmentation, apply_augmentation, create_augmented_image_name 
 
-def process_image(row, config, augmentations, dataframe):
+def process_image(row, config, augmentations):
     train_dir = config['data']['train_dir']
     augmented_dir = config['data']['augmented_dir']
 
@@ -24,36 +19,12 @@ def process_image(row, config, augmentations, dataframe):
     augmented_class_dir = os.path.join(augmented_dir, class_name)
     os.makedirs(augmented_class_dir, exist_ok=True)
     
-    image1 = cv2.imread(full_image_path)
-    image1 = cv2.cvtColor(image1, cv2.COLOR_BGR2RGB)
-
-    # Randomly select another image for augmentation
-    image2_row = dataframe.sample(n=1).iloc[0]
-    image2_relative_path = image2_row['image_path']
-    image2_full_path = os.path.join(train_dir, image2_relative_path)
-    image2 = cv2.imread(image2_full_path)
-    image2 = cv2.cvtColor(image2, cv2.COLOR_BGR2RGB)
-
+    image = cv2.imread(full_image_path)
+    image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+    
     new_rows = []
-
     for aug_type, aug in enumerate(augmentations):
-        lam = np.random.beta(2.0, 8.0)
-
-        if isinstance(aug, MixupTransform):
-            augmented_image = mixup(image1, image2, alpha=lam)
-            
-            # mixed_target = lam * target + (1 - lam) * image2_row['target']
-            # new_target = mixed_target.round().astype(int)
-            new_target = target
-
-        elif isinstance(aug, CutMixTransform):
-            augmented_image = cutmix(image1, image2, alpha=lam)
-            new_target = target
-
-        # label 섞는 것이 의도
-        else:
-            augmented_image = apply_augmentation(image1, aug)
-            new_target = target
+        augmented_image = apply_augmentation(image, aug)
         
         original_filename = os.path.basename(full_image_path)
         new_file_name = create_augmented_image_name(original_filename, aug_type)
@@ -73,11 +44,11 @@ def run(config):
     train_info_file = config['data']['train_info_file']
     augmented_info_file = config['data']['augmented_info_file']
     
+    augmentations = get_augmentation(config['offline_augmentation'])
+    
     df = pd.read_csv(train_info_file)
     
-    augmentations = get_augmentation(config['offline_augmentation'], df)
-    
-    process_func = partial(process_image, config=config, augmentations=augmentations, dataframe=df)
+    process_func = partial(process_image, config=config, augmentations=augmentations)
     
     with ThreadPoolExecutor() as executor:
         results = list(tqdm(

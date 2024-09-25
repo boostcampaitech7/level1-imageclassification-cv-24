@@ -12,8 +12,7 @@ from utils.aug_utils import get_augmentation, apply_augmentation
 
 def get_transform(config, is_train=True):
     if is_train:
-        df = pd.read_csv(config['data']['train_info_file'])
-        custom_augmentations = get_augmentation(config, df)
+        custom_augmentations = get_augmentation(config)
         return A.Compose([
             A.Resize(224, 224),
             custom_augmentations,

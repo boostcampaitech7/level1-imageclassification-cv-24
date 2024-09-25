@@ -9,6 +9,7 @@ from src import train
 from src import test 
 from src import optimization
 from src import augmentation
+from src import ensemble
 
 def set_random_seed(seed):
     random.seed(seed)
@@ -45,6 +46,8 @@ if __name__ == "__main__":
         augmentation.run(config)
     elif mode == 'hyperparameter_tune':
         optimization.run(config)
+    elif mode == 'ensemble' :
+        ensemble.run(config)
     else:
         raise ValueError(f"Invalid mode: {mode}")
 
