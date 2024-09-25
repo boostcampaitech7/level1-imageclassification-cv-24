@@ -9,10 +9,10 @@ import uuid
 import os 
 from src.utils.trainer import train_one_epoch, validate
 from src.utils.params import get_params
-from src.utils.data_loaders import get_data_loaders
+from src.utils.data_loaders import get_data_loaders, get_test_loaders
 from src.utils.metrics import get_metric_function
 from src.models.model_utils import *
-
+from src.utils.pseudo_label import pseudo_label_training_step
 def get_wandb_config(config):
 
     wandb_config = {
@@ -44,6 +44,7 @@ def run(config, trial_number=None):
     model = get_model(config).to(device)
 
     train_loader, val_loader = get_data_loaders(config, batch_size=config['training']['batch_size'])
+    test_loader = get_test_loaders(config)
 
     criterion = get_criterion(config['training']['criterion'])
     optimizer = get_optimizer(config, model.parameters())
@@ -58,7 +59,14 @@ def run(config, trial_number=None):
 
     # 메인 트레이닝 루프
     for epoch in range(config['training']['num_epochs']):
-        train_loss, train_metric, train_class_losses, train_class_metric = train_one_epoch(model, train_loader, criterion, optimizer, device, metric_fn)
+
+        if config['training']['pseudo_labeling']:
+            combined_loader, pseudo_label_count = pseudo_label_training_step(
+                model, train_loader, test_loader, device, config
+            )
+        
+        
+        train_loss, train_metric, train_class_losses, train_class_metric = train_one_epoch(model, combined_loader if config['training']['pseudo_labeling'] else train_loader, criterion, optimizer, device, metric_fn) 
         val_loss, val_metric, val_class_losses, val_class_metric = validate(model, val_loader, criterion, device, metric_fn)
 
         print(f"Epoch {epoch+1}/{config['training']['num_epochs']}")
@@ -70,7 +78,7 @@ def run(config, trial_number=None):
             "train_loss": train_loss,
             "train_metric": train_metric,
             "val_loss": val_loss,
-            "val_metric": val_metric,
+            "val_metric": val_metric
             # "train_class_metric": train_class_metric,
             # "val_class_metric": val_class_metric
         })
@@ -109,7 +117,7 @@ def run(config, trial_number=None):
     if config['training']['additional_train']:
         train_loader, val_loader = val_loader, train_loader
         additional_epochs = config['training']['additional_epochs']
-
+        
         for epoch in range(additional_epochs):
             train_loss, train_metric, train_class_losses, train_class_metric = train_one_epoch(model, train_loader, criterion, optimizer, device, metric_fn)
             val_loss, val_metric, val_class_losses, val_class_metric = validate(model, val_loader, criterion, device, metric_fn)
@@ -123,10 +131,10 @@ def run(config, trial_number=None):
             #print("Val Class Losses:", val_class_losses)
             #print("Val Class metric:", val_class_metric)
         
-        if trial_number is not None:
-            final_model_path = f"{config['paths']['save_dir']}/final_model_trial_{trial_number + 1}.pth"
-        else:
-            final_model_path = f"{config['paths']['save_dir']}/final_model1.pth"
+    if trial_number is not None:
+        final_model_path = f"{config['paths']['save_dir']}/final_model_trial_{trial_number + 1}.pth"
+    else:
+        final_model_path = f"{config['paths']['save_dir']}/final_model1.pth"
 
     torch.save(model.state_dict(), final_model_path)
 

@@ -1,10 +1,10 @@
-mode: "hyperparameter_tune"  
+mode: "train"  
 # train / test / augmentation / hyperparameter_tune
 random_seed: 20010316
 device: "cuda"
 
 wandb:
-  user_name: "jm"
+  user_name: "hg"
   team_name: "gaemanssi2-naver-ai-boostcamp"
 
 paths:
