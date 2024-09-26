@@ -58,3 +58,27 @@ def get_model(config):
     model = timm.create_model(model_name, pretrained=config['model']['pretrained'], num_classes=num_classes)
 
     return model
+
+def get_ensemble_model(config, model_name):
+    model_config = config['model']
+    num_classes = model_config['num_classes']
+    model_mapping = {
+        "resnet": "resnet50",
+        "ViT": "vit_base_patch16_224.augreg_in21k",
+        "ConvN": "convnext_base",
+        "eff3": "efficientnet_b3",
+        "eff4": "efficientnet_b4",
+        "eff5": "efficientnet_b5",
+        "eff6": "efficientnet_b6",
+        "eff7": "efficientnet_b7",
+        "densenet": "densenet121",
+        "convnext_tiny": "convnext_tiny",
+        "deit_base_patch16_224": "deit_base_patch16_224"
+    }
+    # 파일 이름에서 모델 이름 추출
+    model_key = model_name.split('_best_model.pth')[0]
+    # 매핑된 모델 이름 가져오기, 없으면 원래 이름 사용
+    timm_model_name = model_mapping.get(model_key, model_key)
+    
+    model = timm.create_model(timm_model_name, pretrained=config['model']['pretrained'], num_classes=num_classes)
+    return model
