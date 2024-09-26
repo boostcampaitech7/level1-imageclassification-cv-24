@@ -22,9 +22,16 @@ def get_predictions(model, test_loader, device):
             predictions.append(probs.cpu())
     return torch.cat(predictions)
 
-def ensemble_predictions(predictions_list):
-    ensemble_preds = torch.stack(predictions_list).mean(dim=0)
-    return ensemble_preds.argmax(dim=1)
+def ensemble_predictions(predictions_list, ensemble_type):
+    if ensemble_type == 'soft':
+        # 소프트 보팅: 모델들의 확률을 평균화
+        ensemble_preds = torch.stack(predictions_list).mean(dim=0)
+        return ensemble_preds.argmax(dim=1)
+    elif ensemble_type == 'hard':
+        # 하드 보팅: 각 모델이 예측한 클래스 라벨을 다수결로 결정
+        hard_votes = torch.stack([pred.argmax(dim=1) for pred in predictions_list])
+        ensemble_preds, _ = torch.mode(hard_votes, dim=0)
+        return ensemble_preds
 
 def run(config):
     device = torch.device(config['device'])
@@ -40,7 +47,7 @@ def run(config):
         predictions = get_predictions(model, test_loader, device)
         predictions_list.append(predictions)
 
-    ensemble_preds = ensemble_predictions(predictions_list)
+    ensemble_preds = ensemble_predictions(predictions_list, config['ensemble']['type'])
 
     test_info = pd.read_csv(config['data']['test_info_file'])
     test_info['target'] = ensemble_preds.numpy()
@@ -49,9 +56,3 @@ def run(config):
     output_path = os.path.join(config['paths']['output_dir'], "ensemble_output.csv")
     test_info.to_csv(output_path, index=False)
     # print(f"Ensemble predictions saved to {output_path}")
-
-if __name__ == "__main__":
-    from src.utils.params import get_params
-    
-    config = get_params()
-    run(config)
