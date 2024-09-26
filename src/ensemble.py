@@ -23,11 +23,18 @@ def get_predictions(model, test_loader, device):
             predictions.append(probs.cpu())
     return torch.cat(predictions)
 
-def ensemble_predictions(predictions_list):
+def ensemble_predictions(predictions_list, ensemble_type):
     # if len(predictions_list) <= 0:
     #     print("Error")
-    ensemble_preds = torch.stack(predictions_list).mean(dim=0)
-    return ensemble_preds.argmax(dim=1)
+    if ensemble_type == 'soft':
+        ensemble_preds = torch.stack(predictions_list).mean(dim=0)
+        return ensemble_preds.argmax(dim=1)
+    elif ensemble_type == 'hard':
+        hard_votes = torch.stack([pred.argmax(dim=1) for pred in predictions_list])
+        ensemble_preds, _ = torch.mode(hard_votes, dim=0)
+        return ensemble_preds
+    else:
+        raise ValueError(f"Unknown ensemble_type: {ensemble_type}")
 
 def run(config):
     device = torch.device(config['device'])
@@ -44,7 +51,7 @@ def run(config):
         predictions = get_predictions(model, test_loader, device)
         predictions_list.append(predictions)
 
-    ensemble_preds = ensemble_predictions(predictions_list)
+    ensemble_preds = ensemble_predictions(predictions_list, config['ensemble']['type'])
 
     test_info = pd.read_csv(config['data']['test_info_file'])
     test_info['target'] = ensemble_preds.numpy()
@@ -53,9 +60,3 @@ def run(config):
     output_path = os.path.join(config['paths']['output_dir'], "ensemble_output.csv")
     test_info.to_csv(output_path, index=False)
     # print(f"Ensemble predictions saved to {output_path}")
-
-if __name__ == "__main__":
-    from src.utils.params import get_params
-    
-    config = get_params()
-    run(config)
