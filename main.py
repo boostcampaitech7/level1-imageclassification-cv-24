@@ -10,6 +10,7 @@ from src import test
 from src import optimization
 from src import augmentation
 from src import ensemble
+from src import visualization
 
 def set_random_seed(seed):
     random.seed(seed)
@@ -48,6 +49,8 @@ if __name__ == "__main__":
         optimization.run(config)
     elif mode == 'ensemble' :
         ensemble.run(config)
+    elif mode == 'visualization' :
+        visualization.run(config)
     else:
         raise ValueError(f"Invalid mode: {mode}")
 
