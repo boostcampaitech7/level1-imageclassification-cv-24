@@ -14,7 +14,7 @@ from src.utils.metrics import get_metric_function
 from src.models.model_utils import *
 
 def get_wandb_config(config):
-
+    # wandb config 값 가져오기
     wandb_config = {
         "model_name": config['model']['name'],
         "batch_size": config['training']['batch_size'],
@@ -63,6 +63,7 @@ def run(config, trial_number=None):
         print(f"Train Loss: {train_loss:.4f}, Train Metric: {train_metric:.4f}")
         print(f"Val Loss: {val_loss:.4f}, Val Metric: {val_metric:.4f}")
 
+        # wandb log 항목별 작성
         wandb.log({
             "epoch": epoch,
             "train_loss": train_loss,
@@ -127,5 +128,6 @@ def run(config, trial_number=None):
             final_model_path = f"{config['paths']['save_dir']}/{model_name}_final_model.pth"
         torch.save(model.state_dict(), final_model_path)
 
+    # wandb 연결 종료
     wandb.finish()
     return best_val_metric
