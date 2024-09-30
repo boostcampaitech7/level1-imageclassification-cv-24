@@ -10,6 +10,7 @@ import torch
 import os 
 from utils.aug_utils import get_augmentation, apply_augmentation
 
+# 온라인 augmentation
 def get_transform(config, is_train=True):
     if is_train:
         df = pd.read_csv(config['data']['train_info_file'])
@@ -48,7 +49,7 @@ class CustomDataset(Dataset):
         self.info_df = pd.read_csv(info_file)
         self.image_paths = self.info_df['image_path'].tolist()
         self.sketch_name = [path.split(".")[0] for path in self.image_paths]
-        
+        # 오프라인 augmentation을 사용할 것인지
         if self.use_augmented and augmented_info_file:
             self.augmented_df = pd.read_csv(augmented_info_file)
             original_files = {path: True for path in self.image_paths}
@@ -57,7 +58,7 @@ class CustomDataset(Dataset):
                 lambda x: os.path.join(os.path.dirname(x), os.path.splitext(os.path.basename(x))[0].split('_aug')[0] + '.JPEG')
             )
             self.augmented_df = self.augmented_df[self.augmented_df['original_path'].isin(original_files)]
-                    
+            # info_file로 넣은 파일의 augmentation 파일만 합쳐지게끔
             self.augmented_image_paths = self.augmented_df['image_path'].tolist()
             self.all_image_paths = self.image_paths + self.augmented_image_paths
         else:

@@ -6,6 +6,7 @@ from torch.utils.data import Dataset, DataLoader, Subset
 from typing import Dict, Any, Tuple
 from utils.datasets import CustomDataset, get_transform
 
+# 원본 데이터를 train/validation 데이터로 나눠서 각각의 csv 파일로 저장하는 함수
 def split_and_save_dataset(config: Dict[str, Any]) -> Tuple[str, str]:
     full_dataset = CustomDataset(
         root_dir=config['data']['train_dir'],
@@ -32,12 +33,13 @@ def split_and_save_dataset(config: Dict[str, Any]) -> Tuple[str, str]:
     
     return train_save_path, val_save_path
 
+# train 데이터셋, validation 데이터셋 불러오는 함수
 def get_data_loaders(config: Dict[str, Any], batch_size: int = None) -> Tuple[DataLoader, DataLoader]:
     if batch_size is None:
         batch_size = config['training']['batch_size']
     
     train_info_file, val_info_file = split_and_save_dataset(config)
-    
+    # train_info.csv 를 가져와서 Dataset을 새로 만듦
     train_dataset = CustomDataset(
         root_dir=config['data']['train_dir'],
         info_file=train_info_file,
@@ -46,7 +48,7 @@ def get_data_loaders(config: Dict[str, Any], batch_size: int = None) -> Tuple[Da
         transform=get_transform(config, is_train=True),
         use_augmented=True
     )
-    
+    # val_info.csv 를 가져와서 Dataset을 새로 만듦
     val_dataset = CustomDataset(
         root_dir=config['data']['train_dir'],
         info_file=val_info_file,
