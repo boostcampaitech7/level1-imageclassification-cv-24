@@ -15,7 +15,6 @@ from albumentations import (
     GaussNoise, Blur, OpticalDistortion, GridDistortion,
     ElasticTransform, CoarseDropout, Rotate, OneOf, Lambda
 )
-train_dir = "./data/train"
 
 class MixupTransform(ImageOnlyTransform):
     def __init__(self, dataframe, always_apply=False, p=1.0):
@@ -25,7 +24,7 @@ class MixupTransform(ImageOnlyTransform):
     def apply(self, image, **params):
         # 랜덤으로 다른 이미지를 선택
         image2_row = self.dataframe.sample(n=1).iloc[0]
-        image2_path = os.path.join(train_dir, image2_row['image_path'])
+        image2_path = os.path.join(config['data']['train_dir'], image2_row['image_path'])
         image2 = cv2.imread(image2_path)
         image2 = cv2.cvtColor(image2, cv2.COLOR_BGR2RGB)
 
@@ -39,7 +38,7 @@ class CutMixTransform(ImageOnlyTransform):
     def apply(self, image, **params):
         # 랜덤으로 다른 이미지를 선택
         image2_row = self.dataframe.sample(n=1).iloc[0]
-        image2_path = os.path.join(train_dir, image2_row['image_path'])
+        image2_path = os.path.join(config['data']['train_dir'], image2_row['image_path'])
         image2 = cv2.imread(image2_path)
         image2 = cv2.cvtColor(image2, cv2.COLOR_BGR2RGB)
 
@@ -141,23 +140,6 @@ def apply_augmentation_with_mixup_cutmix(image1, image2, augmentations, config):
         augmented_images.append(augmented_image)
 
     return augmented_images
-
-'''
-def apply_augmentation_with_mixup_cutmix(image1, image2, augmentations, config):
-    image1_aug = apply_augmentation(image1, augmentations)
-    # image2_aug = apply_augmentation(image2, augmentations)
-
-    cutmix_prob = config['augmentation'].get('cutmix', 0)
-    mixup_prob = config['augmentation'].get('mixup', 0)
-
-    if np.random.random() < cutmix_prob:
-        return cutmix(image1, image2)
-    
-    if np.random.random() < mixup_prob:
-        return mixup(image1, image2)
-
-    return image1_aug
-'''
 
 def load_config(config_path):
     with open(config_path, 'r') as file:
