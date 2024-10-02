@@ -1,4 +1,4 @@
-# 하이퍼 파라미터 항목
+# Hyperparameter objects
 hyperparameter_optimization:
   n_trials: 30
   parameters:
